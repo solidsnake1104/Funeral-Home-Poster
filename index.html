@@ -23,11 +23,7 @@
       overflow-x: hidden;
     }
 
-    h1,
-    h2,
-    h3 {
-      margin-top: 0;
-    }
+    h1, h2, h3 { margin-top: 0; }
 
     a.title-link {
       color: #4ea3ff;
@@ -36,11 +32,9 @@
       font-weight: 700;
     }
 
-    .app-shell {
-      padding: 1rem;
-    }
+    .app-shell { padding: 1rem; }
 
-    /* CARD LAYOUT (HORIZONTAL SWIPE) */
+    /* CARD LAYOUT */
     .cards-wrapper {
       overflow-x: auto;
       scroll-snap-type: x mandatory;
@@ -60,14 +54,8 @@
     }
 
     @media (min-width: 900px) {
-      .cards-wrapper {
-        justify-content: center;
-      }
-
-      .card {
-        min-width: 800px;
-        max-width: 800px;
-      }
+      .cards-wrapper { justify-content: center; }
+      .card { min-width: 800px; max-width: 800px; }
     }
 
     .card-header {
@@ -77,15 +65,8 @@
       margin-bottom: .5rem;
     }
 
-    .card-title {
-      font-size: 1.2rem;
-      font-weight: 600;
-    }
-
-    .card-step {
-      font-size: .85rem;
-      color: #aaa;
-    }
+    .card-title { font-size: 1.2rem; font-weight: 600; }
+    .card-step { font-size: .85rem; color: #aaa; }
 
     .nav-buttons {
       display: flex;
@@ -94,9 +75,7 @@
       gap: .5rem;
     }
 
-    .nav-buttons button {
-      flex: 1;
-    }
+    .nav-buttons button { flex: 1; }
 
     .preview-box {
       border: 1px solid #444;
@@ -121,18 +100,12 @@
       cursor: pointer;
       border-radius: 4px;
       font-size: 1.05rem;
-      line-height: 1.4;
       background: #222;
     }
 
-    .word.selected {
-      background: #665200;
-      color: #fff;
-    }
+    .word.selected { background: #665200; color: #fff; }
 
-    img {
-      max-width: 100%;
-    }
+    img { max-width: 100%; }
 
     button {
       padding: .6rem 1rem;
@@ -145,17 +118,9 @@
       font-size: .95rem;
     }
 
-    button:disabled {
-      background: #555;
-      color: #999;
-      cursor: default;
-    }
+    button:disabled { background: #555; color: #999; }
 
-    #wp-status {
-      font-size: .9rem;
-      margin-top: .5rem;
-      white-space: pre-line;
-    }
+    #wp-status { font-size: .9rem; margin-top: .5rem; white-space: pre-line; }
 
     /* LOGIN MODAL */
     #authOverlay {
@@ -197,7 +162,6 @@
       border: 1px solid #444;
       background: #111;
       color: #eee;
-      box-sizing: border-box;
     }
 
     #authBox button {
@@ -206,20 +170,14 @@
       font-size: 16px;
       background: #4ea3ff;
       color: #000;
-      border: none;
       border-radius: 8px;
       margin-top: 8px;
       font-weight: 600;
     }
 
-    #authError {
-      font-size: 13px;
-      color: #ff6b6b;
-      margin-top: 8px;
-      min-height: 1em;
-    }
+    #authError { font-size: 13px; color: #ff6b6b; margin-top: 8px; }
 
-    /* BIG GOLD PUBLISH BUTTON */
+    /* GOLD PUBLISH BUTTON */
     #publish-button {
       display: block;
       width: 100%;
@@ -235,6 +193,7 @@
     }
   </style>
 </head>
+
 <body>
   <!-- LOGIN MODAL -->
   <div id="authOverlay">
@@ -252,14 +211,12 @@
       <div id="authError"></div>
     </div>
   </div>
-
   <div class="app-shell">
-    <h1>
-      <a class="title-link" href="">CFH Obit Poster</a>
-    </h1>
+    <h1><a class="title-link" href="">CFH Obit Poster</a></h1>
 
     <div class="cards-wrapper" id="cardsWrapper">
-      <!-- CARD 1: OBITUARY + NAME -->
+
+      <!-- CARD 1 -->
       <div class="card" data-card-index="0">
         <div class="card-header">
           <div class="card-title">Obituary & Name</div>
@@ -274,20 +231,18 @@
           Tap a line below to choose where the obituary starts, then tap words from that line to build the name.
         </p>
 
-        <div style="display:flex; flex-direction:column; gap:1rem; margin-top:.5rem;">
-          <div>
-            <h4 style="margin:0 0 .25rem 0;">Lines</h4>
-            <div id="lines-container" class="preview-box"></div>
-          </div>
+        <div style="margin-top:.5rem;">
+          <h4 style="margin:0 0 .25rem 0;">Lines</h4>
+          <div id="lines-container" class="preview-box"></div>
         </div>
 
         <div class="nav-buttons">
-          <button type="button" disabled>Previous</button>
-          <button type="button" onclick="goToCard(1)">Next</button>
+          <button disabled>Previous</button>
+          <button onclick="goToCard(1)">Next</button>
         </div>
       </div>
 
-      <!-- CARD 2: PHOTO -->
+      <!-- CARD 2 -->
       <div class="card" data-card-index="1">
         <div class="card-header">
           <div class="card-title">Featured Photo</div>
@@ -311,12 +266,12 @@
         </div>
 
         <div class="nav-buttons">
-          <button type="button" onclick="goToCard(0)">Previous</button>
-          <button type="button" onclick="goToCard(2)">Next</button>
+          <button onclick="goToCard(0)">Previous</button>
+          <button onclick="goToCard(2)">Next</button>
         </div>
       </div>
 
-      <!-- CARD 3: CATEGORIES -->
+      <!-- CARD 3 -->
       <div class="card" data-card-index="2">
         <div class="card-header">
           <div class="card-title">Categories</div>
@@ -335,56 +290,39 @@
         </p>
 
         <div class="nav-buttons">
-          <button type="button" onclick="goToCard(1)">Previous</button>
-          <button type="button" onclick="goToCard(3)">Next</button>
+          <button onclick="goToCard(1)">Previous</button>
+          <button onclick="goToCard(3)">Next</button>
         </div>
       </div>
 
-      <!-- CARD 4: PERMALINK -->
+      <!-- ⭐ NEW COMBINED PREVIEW CARD -->
       <div class="card" data-card-index="3">
         <div class="card-header">
-          <div class="card-title">Permalink</div>
+          <div class="card-title">New Post Preview</div>
           <div class="card-step">Step 4 of 5</div>
         </div>
 
-        <h3>Generated URL</h3>
-        <p id="permalink-output" style="font-weight:600; word-break:break-all;">
+        <h3>Permalink</h3>
+        <p id="permalink-output" style="font-weight:600; word-break:break-all; font-size:1.1rem;">
           https://coxfuneralhomeonline.com/
         </p>
 
+        <img id="preview-image" style="margin:1rem 0;" />
+
+        <h2 id="preview-title">TITLE WILL APPEAR HERE</h2>
+
+        <p id="preview-body" style="white-space:normal;"></p>
+
         <div class="nav-buttons">
-          <button type="button" onclick="goToCard(2)">Previous</button>
-          <button type="button" onclick="goToCard(4)">Next</button>
+          <button onclick="goToCard(2)">Previous</button>
+          <button onclick="goToCard(4)">Next</button>
         </div>
       </div>
-
-      <!-- CARD 5: PREVIEW -->
+      <!-- CARD 5: PUBLISH -->
       <div class="card" data-card-index="4">
         <div class="card-header">
-          <div class="card-title">Preview</div>
-          <div class="card-step">Step 5 of 5</div>
-        </div>
-
-        <h3>Post Preview</h3>
-
-        <img id="preview-image" style="margin-bottom:1rem;" />
-
-<h2 id="preview-title">TITLE WILL APPEAR HERE</h2>
-
-<p id="preview-body" style="white-space:normal;"></p>
-
-
-        <div class="nav-buttons">
-          <button type="button" onclick="goToCard(3)">Previous</button>
-          <button type="button" onclick="goToCard(5)">Next</button>
-        </div>
-      </div>
-
-      <!-- CARD 6: PUBLISH -->
-      <div class="card" data-card-index="5">
-        <div class="card-header">
           <div class="card-title">Publish</div>
-          <div class="card-step">Final Step</div>
+          <div class="card-step">Step 5 of 5</div>
         </div>
 
         <h3>Publish to WordPress</h3>
@@ -393,13 +331,14 @@
         <div id="wp-status"></div>
 
         <div class="nav-buttons">
-          <button type="button" onclick="goToCard(4)">Previous</button>
-          <button type="button" disabled>Next</button>
+          <button onclick="goToCard(3)">Previous</button>
+          <button disabled>Next</button>
         </div>
       </div>
 
     </div> <!-- end cards-wrapper -->
   </div> <!-- end app-shell -->
+
 <script>
 /* ============================================================
    WORDPRESS CONFIG
@@ -416,8 +355,8 @@ authForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   authError.textContent = "";
 
-  const user = document.getElementById("authUser").value.trim();
-  const pass = document.getElementById("authPass").value.trim();
+  const user = authUser.value.trim();
+  const pass = authPass.value.trim();
 
   if (!user || !pass) {
     authError.textContent = "Please enter both username and password.";
@@ -438,49 +377,32 @@ authForm.addEventListener("submit", async (e) => {
     }
 
     window.wpAuth = { username: user, password: pass };
-    document.getElementById("authOverlay").style.display = "none";
+    authOverlay.style.display = "none";
 
-  } catch (err) {
+  } catch {
     authError.textContent = "Unable to reach WordPress.";
   }
 });
 
-function getAuthHeader() {
-  if (!window.wpAuth) return "";
-  return "Basic " + btoa(window.wpAuth.username + ":" + window.wpAuth.password);
-}
-
 /* ============================================================
-   SWIPE CARD NAVIGATION
+   SWIPE + BUTTON NAVIGATION
    ============================================================ */
 function goToCard(index) {
   const wrapper = document.getElementById("cardsWrapper");
   const card = wrapper.querySelector(`[data-card-index="${index}"]`);
   if (card) {
-    wrapper.scrollTo({
-      left: card.offsetLeft,
-      behavior: "smooth"
-    });
+    wrapper.scrollTo({ left: card.offsetLeft, behavior: "smooth" });
   }
-
-  // Always scroll page back to top
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
-// Auto-scroll page to top when user swipes between cards
-const wrapper = document.getElementById("cardsWrapper");
+
 let swipeTimeout = null;
-
-wrapper.addEventListener("scroll", () => {
-  // Clear previous timer
+cardsWrapper.addEventListener("scroll", () => {
   if (swipeTimeout) clearTimeout(swipeTimeout);
-
-  // When scrolling stops for 150ms → user finished swiping
   swipeTimeout = setTimeout(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, 150);
 });
-
-
 
 /* ============================================================
    DOCX HANDLING + NAME SELECTION
@@ -488,17 +410,15 @@ wrapper.addEventListener("scroll", () => {
 let parsedLines = [];
 let nonFooterIndices = [];
 let selectedWords = [];
-let selectedLineIndex = null;        // index in nonFooterIndices
-let selectedOriginalIndex = null;    // index in parsedLines
+let selectedOriginalIndex = null;
 let currentTitleUpper = "";
 let currentSlug = "";
 
-const docxInput = document.getElementById("docx-input");
 const linesContainer = document.getElementById("lines-container");
 const previewTitle = document.getElementById("preview-title");
 const previewBody = document.getElementById("preview-body");
 
-/* Footer lines to filter from selection (but keep in final content) */
+/* Footer lines to filter from selection */
 const FILTER_LINES = [
   "COX FUNERAL HOME; PO BOX 118; 218 SOUTH MERIDIAN ST; JASONVILLE, IN 47438",
   "PHONE--812-665-9490",
@@ -507,18 +427,7 @@ const FILTER_LINES = [
 
 function isFooterLine(line) {
   const trimmed = line.trim().toLowerCase();
-  return FILTER_LINES.some(f =>
-    trimmed.includes(f.toLowerCase())
-  );
-}
-
-
-function cleanPreviewLine(line) {
-  const trimmed = line.trim();
-  if (FILTER_LINES.some(f => trimmed.toLowerCase().includes(f.toLowerCase()))) {
-    return "";
-  }
-  return trimmed;
+  return FILTER_LINES.some(f => trimmed.includes(f.toLowerCase()));
 }
 
 docxInput.addEventListener("change", () => {
@@ -543,7 +452,6 @@ docxInput.addEventListener("change", () => {
 function renderLines() {
   linesContainer.innerHTML = "";
   selectedWords = [];
-  selectedLineIndex = null;
   selectedOriginalIndex = null;
   previewBody.textContent = "First line will appear here.";
   previewTitle.textContent = "TITLE WILL APPEAR HERE";
@@ -551,14 +459,10 @@ function renderLines() {
   currentSlug = "";
   nonFooterIndices = [];
 
-  // 1) Build full list of non-footer line indices
   parsedLines.forEach((line, originalIndex) => {
-    if (!isFooterLine(line)) {
-      nonFooterIndices.push(originalIndex);
-    }
+    if (!isFooterLine(line)) nonFooterIndices.push(originalIndex);
   });
 
-  // 2) Only show the first 60 non-footer lines in the UI
   const displayIndices = nonFooterIndices.slice(0, 60);
 
   displayIndices.forEach((originalIndex, displayIndex) => {
@@ -569,40 +473,23 @@ function renderLines() {
     div.textContent = line;
     div.dataset.originalText = line;
 
-    // displayIndex is the index into displayIndices,
-    // which maps back to nonFooterIndices[displayIndex]
     div.onclick = () => selectLineForWords(div, line, displayIndex);
 
     linesContainer.appendChild(div);
   });
 }
 
-
-/**
- * When a line is clicked:
- * - That line becomes the "first line" (by original index)
- * - The line text stays visible
- * - Tappable words appear directly underneath
- * - Only selected words get highlighted
- */
 function selectLineForWords(lineElement, rawLine, nonFooterIndex) {
-  selectedLineIndex = nonFooterIndex;
   selectedOriginalIndex = nonFooterIndices[nonFooterIndex];
   selectedWords = [];
 
-  // Reset all lines to original text (remove any word spans)
   document.querySelectorAll(".line").forEach(el => {
-    const original = el.dataset.originalText;
-    if (original) {
-      el.innerHTML = original;
-    }
+    el.innerHTML = el.dataset.originalText;
   });
 
-  // Rebuild this line: original text + <br> + tappable words
   lineElement.innerHTML = rawLine + "<br>";
 
-  const words = rawLine.split(/\s+/);
-  words.forEach((word, i) => {
+  rawLine.split(/\s+/).forEach((word, i) => {
     const span = document.createElement("span");
     span.className = "word";
     span.textContent = word;
@@ -614,22 +501,10 @@ function selectLineForWords(lineElement, rawLine, nonFooterIndex) {
     lineElement.append(" ");
   });
 
-// Build full preview content starting at the selected original index
-let fullPreview = parsedLines
-  .slice(selectedOriginalIndex)
-  .join("\n\n");
-
-// Convert newlines to <br> for HTML preview
-fullPreview = fullPreview.replace(/\n/g, "<br>");
-
-// Update preview
-previewBody.innerHTML = fullPreview || "First line will appear here.";
+  let fullPreview = parsedLines.slice(selectedOriginalIndex).join("\n\n");
+  previewBody.innerHTML = fullPreview.replace(/\n/g, "<br>");
 }
 
-/**
- * Toggle a single word inside the selected line.
- * Only the word gets highlighted (soft gold).
- */
 function toggleInlineWord(span, index, word) {
   const cleanWord = word.replace(/,/g, "");
 
@@ -676,6 +551,7 @@ function updatePermalink(titleText) {
   currentSlug = slug;
   permalinkOutput.textContent = "https://coxfuneralhomeonline.com/" + slug + "/";
 }
+
 /* ============================================================
    CATEGORY HANDLING
    ============================================================ */
@@ -744,7 +620,6 @@ skipPhoto.addEventListener("click", () => {
   featuredPreview.src = "";
   previewImage.src = "";
 });
-
 /* ============================================================
    WORDPRESS PUBLISHING
    ============================================================ */
@@ -782,6 +657,11 @@ async function uploadFeaturedImageIfAny() {
 
   const media = await uploadRes.json();
   return media.id;
+}
+
+function getAuthHeader() {
+  if (!window.wpAuth) return "";
+  return "Basic " + btoa(window.wpAuth.username + ":" + window.wpAuth.password);
 }
 
 async function publishToWordPress() {
