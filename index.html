@@ -462,7 +462,11 @@ function goToCard(index) {
       behavior: "smooth"
     });
   }
+
+  // Always scroll page back to top
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
+
 
 /* ============================================================
    DOCX HANDLING + NAME SELECTION
