@@ -466,6 +466,20 @@ function goToCard(index) {
   // Always scroll page back to top
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
+// Auto-scroll page to top when user swipes between cards
+const wrapper = document.getElementById("cardsWrapper");
+let swipeTimeout = null;
+
+wrapper.addEventListener("scroll", () => {
+  // Clear previous timer
+  if (swipeTimeout) clearTimeout(swipeTimeout);
+
+  // When scrolling stops for 150ms → user finished swiping
+  swipeTimeout = setTimeout(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, 150);
+});
+
 
 
 /* ============================================================
