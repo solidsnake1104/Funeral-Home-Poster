@@ -270,14 +270,7 @@
             <div id="lines-container" class="preview-box"></div>
           </div>
 
-          <div>
-            <h4 style="margin:0 0 .25rem 0;">Tap Words to Build Name</h4>
-            <div id="name-container" class="preview-box"></div>
-            <p style="margin-top:.5rem;">
-              <strong>Selected Title:</strong>
-              <span id="selected-title"></span>
-            </p>
-          </div>
+          
         </div>
 
         <div class="nav-buttons">
@@ -512,26 +505,63 @@ docxInput.addEventListener("change", () => {
 
 function renderLines() {
   linesContainer.innerHTML = "";
-  nameContainer.innerHTML = "";
   selectedWords = [];
   selectedLineIndex = null;
   selectedTitleSpan.textContent = "";
   previewBody.textContent = "First line will appear here.";
 
-  parsedLines
+  const filtered = parsedLines
     .slice(0, 60)
     .filter(line => {
       const trimmed = line.trim().toLowerCase();
       return !FILTER_LINES.some(f => trimmed === f.toLowerCase());
-    })
-    .forEach((line, index) => {
-      const div = document.createElement("div");
-      div.className = "line";
-      div.textContent = line;
-      div.onclick = () => selectLine(index);
-      linesContainer.appendChild(div);
     });
+
+  filtered.forEach((line, index) => {
+    const div = document.createElement("div");
+    div.className = "line";
+    div.textContent = line;
+    div.onclick = () => expandLineForWords(div, line, index);
+    linesContainer.appendChild(div);
+  });
 }
+
+function expandLineForWords(lineElement, rawLine, index) {
+  selectedLineIndex = index;
+  selectedWords = [];
+
+  // Clear previous selections
+  document.querySelectorAll(".line").forEach(el => {
+    el.classList.remove("selected");
+    el.innerHTML = el.dataset.originalText || el.textContent;
+  });
+
+  // Mark this line as selected
+  lineElement.classList.add("selected");
+  lineElement.dataset.originalText = rawLine;
+
+  // Build inline word buttons
+  const words = rawLine.split(/\s+/);
+  lineElement.innerHTML = "";
+
+  words.forEach((word, i) => {
+    const span = document.createElement("span");
+    span.className = "word";
+    span.textContent = word;
+    span.onclick = (e) => {
+      e.stopPropagation();
+      toggleInlineWord(span, i, word, rawLine);
+    };
+    lineElement.appendChild(span);
+    lineElement.append(" ");
+  });
+
+  // Update preview body
+  const cleaned = cleanPreviewLine(rawLine);
+  previewBody.textContent = cleaned || "First line will appear here.";
+}
+
+
 
 
 function selectLine(index) {
@@ -566,31 +596,29 @@ function renderWords(text) {
   });
 }
 
-function toggleWord(i, word) {
+function toggleInlineWord(span, index, word, rawLine) {
   const cleanWord = word.replace(/,/g, "");
 
-  const existing = selectedWords.find(w => w.index === i);
+  const existing = selectedWords.find(w => w.index === index);
   if (existing) {
-    selectedWords = selectedWords.filter(w => w.index !== i);
+    selectedWords = selectedWords.filter(w => w.index !== index);
+    span.classList.remove("selected");
   } else {
-    selectedWords.push({ index: i, word: cleanWord });
+    selectedWords.push({ index, word: cleanWord });
+    span.classList.add("selected");
   }
 
   selectedWords.sort((a, b) => a.index - b.index);
-
-  document.querySelectorAll(".word").forEach((el, idx) => {
-    el.classList.toggle("selected", selectedWords.some(w => w.index === idx));
-  });
 
   const title = selectedWords.map(w => w.word).join(" ");
   const titleUpper = title.toUpperCase();
 
   currentTitleUpper = titleUpper;
-  selectedTitleSpan.textContent = titleUpper;
   previewTitle.textContent = titleUpper || "TITLE WILL APPEAR HERE";
 
   updatePermalink(titleUpper);
 }
+
 /* ============================================================
    PERMALINK GENERATION
    ============================================================ */
