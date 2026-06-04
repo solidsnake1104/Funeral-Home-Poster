@@ -533,22 +533,32 @@ function renderLines() {
   currentSlug = "";
   nonFooterIndices = [];
 
-  let count = 0;
+  // 1) Build full list of non-footer line indices
   parsedLines.forEach((line, originalIndex) => {
-    if (count >= 60) return;
-    if (isFooterLine(line)) return;
+    if (!isFooterLine(line)) {
+      nonFooterIndices.push(originalIndex);
+    }
+  });
 
-    nonFooterIndices.push(originalIndex);
-    count++;
+  // 2) Only show the first 60 non-footer lines in the UI
+  const displayIndices = nonFooterIndices.slice(0, 60);
+
+  displayIndices.forEach((originalIndex, displayIndex) => {
+    const line = parsedLines[originalIndex];
 
     const div = document.createElement("div");
     div.className = "line";
     div.textContent = line;
     div.dataset.originalText = line;
-    div.onclick = () => selectLineForWords(div, line, nonFooterIndices.length - 1);
+
+    // displayIndex is the index into displayIndices,
+    // which maps back to nonFooterIndices[displayIndex]
+    div.onclick = () => selectLineForWords(div, line, displayIndex);
+
     linesContainer.appendChild(div);
   });
 }
+
 
 /**
  * When a line is clicked:
