@@ -346,11 +346,38 @@
 const WP_API_BASE = "https://coxfuneralhomeonline.com/wp-json/wp/v2";
 
 /* ============================================================
-   LOGIN HANDLING
+   DOM REFERENCES
    ============================================================ */
+const authOverlay = document.getElementById("authOverlay");
+const authUser = document.getElementById("authUser");
+const authPass = document.getElementById("authPass");
 const authForm = document.getElementById("authForm");
 const authError = document.getElementById("authError");
 
+const cardsWrapper = document.getElementById("cardsWrapper");
+const docxInput = document.getElementById("docx-input");
+const linesContainer = document.getElementById("lines-container");
+const previewTitle = document.getElementById("preview-title");
+const previewBody = document.getElementById("preview-body");
+const permalinkOutput = document.getElementById("permalink-output");
+
+const catCheckboxes = document.querySelectorAll(".cat-checkbox");
+const selectedCategoriesSpan = document.getElementById("selected-categories");
+
+let cropper = null;
+const photoInput = document.getElementById("photo-input");
+const cropImage = document.getElementById("crop-image");
+const cropButton = document.getElementById("crop-button");
+const skipPhoto = document.getElementById("skip-photo");
+const featuredPreview = document.getElementById("featured-preview");
+const previewImage = document.getElementById("preview-image");
+
+const publishButton = document.getElementById("publish-button");
+const wpStatus = document.getElementById("wp-status");
+
+/* ============================================================
+   LOGIN HANDLING
+   ============================================================ */
 authForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   authError.textContent = "";
@@ -384,14 +411,18 @@ authForm.addEventListener("submit", async (e) => {
   }
 });
 
+function getAuthHeader() {
+  if (!window.wpAuth) return "";
+  return "Basic " + btoa(window.wpAuth.username + ":" + window.wpAuth.password);
+}
+
 /* ============================================================
    SWIPE + BUTTON NAVIGATION
    ============================================================ */
 function goToCard(index) {
-  const wrapper = document.getElementById("cardsWrapper");
-  const card = wrapper.querySelector(`[data-card-index="${index}"]`);
+  const card = cardsWrapper.querySelector(`[data-card-index="${index}"]`);
   if (card) {
-    wrapper.scrollTo({ left: card.offsetLeft, behavior: "smooth" });
+    cardsWrapper.scrollTo({ left: card.offsetLeft, behavior: "smooth" });
   }
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -413,10 +444,6 @@ let selectedWords = [];
 let selectedOriginalIndex = null;
 let currentTitleUpper = "";
 let currentSlug = "";
-
-const linesContainer = document.getElementById("lines-container");
-const previewTitle = document.getElementById("preview-title");
-const previewBody = document.getElementById("preview-body");
 
 /* Footer lines to filter from selection */
 const FILTER_LINES = [
@@ -531,8 +558,6 @@ function toggleInlineWord(span, index, word) {
 /* ============================================================
    PERMALINK GENERATION
    ============================================================ */
-const permalinkOutput = document.getElementById("permalink-output");
-
 function updatePermalink(titleText) {
   if (!titleText || titleText.trim().length === 0) {
     permalinkOutput.textContent = "https://coxfuneralhomeonline.com/";
@@ -555,9 +580,6 @@ function updatePermalink(titleText) {
 /* ============================================================
    CATEGORY HANDLING
    ============================================================ */
-const catCheckboxes = document.querySelectorAll(".cat-checkbox");
-const selectedCategoriesSpan = document.getElementById("selected-categories");
-
 function updateSelectedCategories() {
   const cats = Array.from(catCheckboxes)
     .filter(cb => cb.checked)
@@ -572,14 +594,6 @@ updateSelectedCategories();
 /* ============================================================
    IMAGE HANDLING
    ============================================================ */
-let cropper = null;
-const photoInput = document.getElementById("photo-input");
-const cropImage = document.getElementById("crop-image");
-const cropButton = document.getElementById("crop-button");
-const skipPhoto = document.getElementById("skip-photo");
-const featuredPreview = document.getElementById("featured-preview");
-const previewImage = document.getElementById("preview-image");
-
 photoInput.addEventListener("change", () => {
   const file = photoInput.files[0];
   if (!file) return;
@@ -620,12 +634,10 @@ skipPhoto.addEventListener("click", () => {
   featuredPreview.src = "";
   previewImage.src = "";
 });
+
 /* ============================================================
    WORDPRESS PUBLISHING
    ============================================================ */
-const publishButton = document.getElementById("publish-button");
-const wpStatus = document.getElementById("wp-status");
-
 publishButton.addEventListener("click", () => {
   publishToWordPress().catch(err => {
     wpStatus.textContent = "Error: " + err.message;
@@ -657,11 +669,6 @@ async function uploadFeaturedImageIfAny() {
 
   const media = await uploadRes.json();
   return media.id;
-}
-
-function getAuthHeader() {
-  if (!window.wpAuth) return "";
-  return "Basic " + btoa(window.wpAuth.username + ":" + window.wpAuth.password);
 }
 
 async function publishToWordPress() {
@@ -747,6 +754,7 @@ async function publishToWordPress() {
   btn.style.background = "#4caf50";
 }
 </script>
+
 
 </body>
 </html>
