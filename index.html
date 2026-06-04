@@ -367,10 +367,12 @@
 
         <h3>Post Preview</h3>
 
-        <h2 id="preview-title">TITLE WILL APPEAR HERE</h2>
-        <p id="preview-body">First line will appear here.</p>
+        <img id="preview-image" style="margin-bottom:1rem;" />
 
-        <img id="preview-image" style="margin-top:1rem;" />
+<h2 id="preview-title">TITLE WILL APPEAR HERE</h2>
+
+<p id="preview-body" style="white-space:normal;"></p>
+
 
         <div class="nav-buttons">
           <button type="button" onclick="goToCard(3)">Previous</button>
@@ -487,8 +489,11 @@ const FILTER_LINES = [
 
 function isFooterLine(line) {
   const trimmed = line.trim().toLowerCase();
-  return FILTER_LINES.some(f => trimmed === f.toLowerCase());
+  return FILTER_LINES.some(f =>
+    trimmed.includes(f.toLowerCase())
+  );
 }
+
 
 function cleanPreviewLine(line) {
   const trimmed = line.trim();
@@ -581,9 +586,16 @@ function selectLineForWords(lineElement, rawLine, nonFooterIndex) {
     lineElement.append(" ");
   });
 
-  // Update preview body with this line as the first line
-  const cleaned = cleanPreviewLine(rawLine);
-  previewBody.textContent = cleaned || "First line will appear here.";
+// Build full preview content starting at the selected original index
+let fullPreview = parsedLines
+  .slice(selectedOriginalIndex)
+  .join("\n\n");
+
+// Convert newlines to <br> for HTML preview
+fullPreview = fullPreview.replace(/\n/g, "<br>");
+
+// Update preview
+previewBody.innerHTML = fullPreview || "First line will appear here.";
 }
 
 /**
