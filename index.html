@@ -15,19 +15,87 @@
 
   <style>
     body {
-      font-family: system-ui;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       margin: 0;
-      padding: 1rem;
+      padding: 0;
       background: #121212;
       color: #e5e5e5;
+      overflow-x: hidden;
     }
 
-    .section {
-      background: #1e1e1e;
+    h1,
+    h2,
+    h3 {
+      margin-top: 0;
+    }
+
+    a.title-link {
+      color: #4ea3ff;
+      text-decoration: none;
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .app-shell {
       padding: 1rem;
-      margin-bottom: 1rem;
-      border-radius: 8px;
+    }
+
+    /* CARD LAYOUT (HORIZONTAL SWIPE) */
+    .cards-wrapper {
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      display: flex;
+      gap: 1rem;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .card {
+      scroll-snap-align: start;
+      background: #1e1e1e;
+      border-radius: 10px;
       border: 1px solid #333;
+      padding: 1rem;
+      min-width: 100%;
+      box-sizing: border-box;
+    }
+
+    @media (min-width: 900px) {
+      .cards-wrapper {
+        justify-content: center;
+      }
+
+      .card {
+        min-width: 800px;
+        max-width: 800px;
+      }
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: .5rem;
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .card-step {
+      font-size: .85rem;
+      color: #aaa;
+    }
+
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1rem;
+      gap: .5rem;
+    }
+
+    .nav-buttons button {
+      flex: 1;
     }
 
     .preview-box {
@@ -36,12 +104,14 @@
       background: #181818;
       max-height: 250px;
       overflow-y: auto;
+      border-radius: 6px;
     }
 
     .line {
-      padding: .25rem;
+      padding: .35rem .4rem;
       cursor: pointer;
       border-radius: 4px;
+      margin-bottom: 2px;
     }
 
     .line.selected {
@@ -50,9 +120,14 @@
     }
 
     .word {
-      padding: 0 2px;
+      display: inline-block;
+      padding: 4px 6px;
+      margin: 2px 2px;
       cursor: pointer;
-      border-radius: 3px;
+      border-radius: 4px;
+      font-size: 1.05rem;
+      line-height: 1.4;
+      background: #222;
     }
 
     .word.selected {
@@ -64,18 +139,20 @@
     }
 
     button {
-      padding: .5rem 1rem;
+      padding: .6rem 1rem;
       background: #4ea3ff;
       color: #000;
       border: none;
       border-radius: 4px;
       cursor: pointer;
       font-weight: 600;
+      font-size: .95rem;
     }
 
     button:disabled {
       background: #555;
       color: #999;
+      cursor: default;
     }
 
     #wp-status {
@@ -84,14 +161,7 @@
       white-space: pre-line;
     }
 
-    #authBackdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.65);
-      backdrop-filter: blur(4px);
-      z-index: 9998;
-    }
-
+    /* LOGIN MODAL */
     #authOverlay {
       position: fixed;
       inset: 0;
@@ -101,7 +171,17 @@
       z-index: 9999;
     }
 
+    #authBackdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 1;
+    }
+
     #authBox {
+      position: relative;
+      z-index: 2;
       background: #1e1e1e;
       padding: 24px;
       border-radius: 12px;
@@ -142,122 +222,186 @@
       margin-top: 8px;
       min-height: 1em;
     }
-
-    a.title-link {
-      color: #4ea3ff;
-      text-decoration: none;
-      font-size: 1.8rem;
-      font-weight: 700;
-    }
   </style>
 </head>
 
 <body>
+  <!-- LOGIN MODAL -->
+  <div id="authOverlay">
+    <div id="authBackdrop"></div>
 
-<!-- LOGIN MODAL -->
-<div id="authOverlay">
-  <div id="authBackdrop"></div>
+    <div id="authBox">
+      <h2>Cox Funeral Home WordPress Login</h2>
 
-  <div id="authBox">
-    <h2>Cox Funeral Home WordPress Login</h2>
+      <form id="authForm">
+        <input type="text" id="authUser" autocomplete="username" placeholder="WordPress Username">
+        <input type="password" id="authPass" autocomplete="current-password" placeholder="Application Password">
+        <button type="submit" id="authSubmit">Login</button>
+      </form>
 
-    <form id="authForm">
-      <input type="text" id="authUser" autocomplete="username" placeholder="WordPress Username">
-      <input type="password" id="authPass" autocomplete="current-password" placeholder="Application Password">
-      <button type="submit" id="authSubmit">Login</button>
-    </form>
-
-    <div id="authError"></div>
-  </div>
-</div>
-<!-- PAGE TITLE -->
-<h1>
-  <a class="title-link" href="">CFH Obit Poster</a>
-</h1>
-
-<!-- OBITUARY FIRST -->
-<div class="section">
-  <h2>Obituary DOCX</h2>
-  <input type="file" id="docx-input" accept=".docx" />
-
-  <div style="display:flex; gap:1rem; margin-top:1rem;">
-    <div style="flex:1;">
-      <h3>Select First Line</h3>
-      <div id="lines-container" class="preview-box"></div>
-    </div>
-
-    <div style="flex:1;">
-      <h3>Select Name (Tap Words)</h3>
-      <div id="name-container" class="preview-box"></div>
-      <p><strong>Selected Title:</strong> <span id="selected-title"></span></p>
+      <div id="authError"></div>
     </div>
   </div>
-</div>
 
-<!-- PHOTO SECOND -->
-<div class="section">
-  <h2>Featured Photo (Optional)</h2>
-  <input type="file" id="photo-input" accept="image/*" />
+  <div class="app-shell">
+    <h1>
+      <a class="title-link" href="">CFH Obit Poster</a>
+    </h1>
 
-  <div style="margin-top:1rem;">
-    <h3>Crop (3:4 Portrait)</h3>
-    <div id="crop-container" style="max-height:300px; overflow:hidden;">
-      <img id="crop-image" />
-    </div>
-    <button id="crop-button" disabled>Crop & Resize to 200×267</button>
-    <button id="skip-photo">Skip Photo</button>
-  </div>
+    <div class="cards-wrapper" id="cardsWrapper">
+      <!-- CARD 1: OBITUARY + NAME -->
+      <div class="card" data-card-index="0">
+        <div class="card-header">
+          <div class="card-title">Obituary & Name</div>
+          <div class="card-step">Step 1 of 5</div>
+        </div>
 
-  <h3 style="margin-top:1rem;">Featured Image Preview</h3>
-  <div class="preview-box" style="text-align:center;">
-    <img id="featured-preview" />
-  </div>
-</div>
+        <h3>Upload Obituary DOCX</h3>
+        <input type="file" id="docx-input" accept=".docx" />
 
-<!-- CATEGORIES -->
-<div class="section">
-  <h2>Categories</h2>
+        <h3 style="margin-top:1rem;">Select Name & First Line</h3>
+        <p style="font-size:.9rem; color:#bbb;">
+          Tap a line below to choose where the obituary starts, then tap words from that line to build the name.
+        </p>
 
-  <label><input type="checkbox" class="cat-checkbox" value="7" checked> Obituaries</label><br>
-  <label><input type="checkbox" class="cat-checkbox" value="55" checked> 2021</label><br>
-  <label><input type="checkbox" class="cat-checkbox" value="9" checked> Recent Passings</label>
+        <div style="display:flex; flex-direction:column; gap:1rem; margin-top:.5rem;">
+          <div>
+            <h4 style="margin:0 0 .25rem 0;">Lines</h4>
+            <div id="lines-container" class="preview-box"></div>
+          </div>
 
-  <p style="margin-top:1rem;">
-    <strong>Selected Categories:</strong>
-    <span id="selected-categories">7, 55, 9</span>
-  </p>
-</div>
+          <div>
+            <h4 style="margin:0 0 .25rem 0;">Tap Words to Build Name</h4>
+            <div id="name-container" class="preview-box"></div>
+            <p style="margin-top:.5rem;">
+              <strong>Selected Title:</strong>
+              <span id="selected-title"></span>
+            </p>
+          </div>
+        </div>
 
-<!-- PERMALINK -->
-<div class="section">
-  <h2>Permalink</h2>
-  <p><strong>Generated URL:</strong></p>
-  <p id="permalink-output" style="font-weight:600; word-break:break-all;">
-    https://coxfuneralhomeonline.com/
-  </p>
-</div>
+        <div class="nav-buttons">
+          <button type="button" disabled>Previous</button>
+          <button type="button" onclick="goToCard(1)">Next</button>
+        </div>
+      </div>
+      <!-- CARD 2: PHOTO -->
+      <div class="card" data-card-index="1">
+        <div class="card-header">
+          <div class="card-title">Featured Photo</div>
+          <div class="card-step">Step 2 of 5</div>
+        </div>
 
-<!-- PREVIEW -->
-<div class="section">
-  <h2>Post Preview</h2>
-  <h3 id="preview-title">TITLE WILL APPEAR HERE</h3>
-  <p id="preview-body">First line will appear here.</p>
-  <img id="preview-image" />
-</div>
+        <h3>Upload Photo (Optional)</h3>
+        <input type="file" id="photo-input" accept="image/*" />
 
-<!-- PUBLISH -->
-<div class="section">
-  <h2>Publish to WordPress</h2>
-  <button id="publish-button">Publish to WordPress</button>
-  <div id="wp-status"></div>
-</div>
+        <h3 style="margin-top:1rem;">Crop (3:4 Portrait)</h3>
+        <div id="crop-container" style="max-height:300px; overflow:hidden;">
+          <img id="crop-image" />
+        </div>
+
+        <button id="crop-button" disabled>Crop & Resize to 200×267</button>
+        <button id="skip-photo" style="margin-top:.5rem;">Skip Photo</button>
+
+        <h3 style="margin-top:1rem;">Preview</h3>
+        <div class="preview-box" style="text-align:center;">
+          <img id="featured-preview" />
+        </div>
+
+        <div class="nav-buttons">
+          <button type="button" onclick="goToCard(0)">Previous</button>
+          <button type="button" onclick="goToCard(2)">Next</button>
+        </div>
+      </div>
+
+      <!-- CARD 3: CATEGORIES -->
+      <div class="card" data-card-index="2">
+        <div class="card-header">
+          <div class="card-title">Categories</div>
+          <div class="card-step">Step 3 of 5</div>
+        </div>
+
+        <h3>Select Categories</h3>
+
+        <label><input type="checkbox" class="cat-checkbox" value="7" checked> Obituaries</label><br>
+        <label><input type="checkbox" class="cat-checkbox" value="55" checked> 2021</label><br>
+        <label><input type="checkbox" class="cat-checkbox" value="9" checked> Recent Passings</label>
+
+        <p style="margin-top:1rem;">
+          <strong>Selected Categories:</strong>
+          <span id="selected-categories">7, 55, 9</span>
+        </p>
+
+        <div class="nav-buttons">
+          <button type="button" onclick="goToCard(1)">Previous</button>
+          <button type="button" onclick="goToCard(3)">Next</button>
+        </div>
+      </div>
+
+      <!-- CARD 4: PERMALINK -->
+      <div class="card" data-card-index="3">
+        <div class="card-header">
+          <div class="card-title">Permalink</div>
+          <div class="card-step">Step 4 of 5</div>
+        </div>
+
+        <h3>Generated URL</h3>
+        <p id="permalink-output" style="font-weight:600; word-break:break-all;">
+          https://coxfuneralhomeonline.com/
+        </p>
+
+        <div class="nav-buttons">
+          <button type="button" onclick="goToCard(2)">Previous</button>
+          <button type="button" onclick="goToCard(4)">Next</button>
+        </div>
+      </div>
+      <!-- CARD 5: PREVIEW -->
+      <div class="card" data-card-index="4">
+        <div class="card-header">
+          <div class="card-title">Preview</div>
+          <div class="card-step">Step 5 of 5</div>
+        </div>
+
+        <h3>Post Preview</h3>
+
+        <h2 id="preview-title">TITLE WILL APPEAR HERE</h2>
+        <p id="preview-body">First line will appear here.</p>
+
+        <img id="preview-image" style="margin-top:1rem;" />
+
+        <div class="nav-buttons">
+          <button type="button" onclick="goToCard(3)">Previous</button>
+          <button type="button" onclick="goToCard(5)">Next</button>
+        </div>
+      </div>
+
+      <!-- CARD 6: PUBLISH -->
+      <div class="card" data-card-index="5">
+        <div class="card-header">
+          <div class="card-title">Publish</div>
+          <div class="card-step">Final Step</div>
+        </div>
+
+        <h3>Publish to WordPress</h3>
+        <button id="publish-button">Publish to WordPress</button>
+
+        <div id="wp-status"></div>
+
+        <div class="nav-buttons">
+          <button type="button" onclick="goToCard(4)">Previous</button>
+          <button type="button" disabled>Next</button>
+        </div>
+      </div>
+
+    </div> <!-- end cards-wrapper -->
+  </div> <!-- end app-shell -->
+
 <script>
 /* ============================================================
    WORDPRESS CONFIG
    ============================================================ */
 const WP_API_BASE = "https://coxfuneralhomeonline.com/wp-json/wp/v2";
 
-////////////////////////////////////////////////////////////////////////////////
 /* ============================================================
    LOGIN HANDLING
    ============================================================ */
@@ -302,7 +446,181 @@ function getAuthHeader() {
   return "Basic " + btoa(window.wpAuth.username + ":" + window.wpAuth.password);
 }
 
-////////////////////////////////////////////////////////////////////////////////
+/* ============================================================
+   SWIPE CARD NAVIGATION
+   ============================================================ */
+function goToCard(index) {
+  const wrapper = document.getElementById("cardsWrapper");
+  const card = wrapper.querySelector(`[data-card-index="${index}"]`);
+  if (card) {
+    wrapper.scrollTo({
+      left: card.offsetLeft,
+      behavior: "smooth"
+    });
+  }
+}
+
+/* ============================================================
+   DOCX HANDLING + NAME SELECTION
+   ============================================================ */
+let parsedLines = [];
+let selectedWords = [];
+let selectedLineIndex = null;
+let currentTitleUpper = "";
+let currentSlug = "";
+
+const docxInput = document.getElementById("docx-input");
+const linesContainer = document.getElementById("lines-container");
+const nameContainer = document.getElementById("name-container");
+const selectedTitleSpan = document.getElementById("selected-title");
+const previewTitle = document.getElementById("preview-title");
+const previewBody = document.getElementById("preview-body");
+
+/* Footer lines to filter from preview */
+const FILTER_LINES = [
+  "COX FUNERAL HOME; PO BOX 118; 218 SOUTH MERIDIAN ST; JASONVILLE, IN 47438",
+  "PHONE--812-665-9490",
+  "PAID OBIT with photo"
+];
+
+function cleanPreviewLine(line) {
+  const trimmed = line.trim();
+  if (FILTER_LINES.some(f => trimmed.toLowerCase().includes(f.toLowerCase()))) {
+    return "";
+  }
+  return trimmed;
+}
+
+docxInput.addEventListener("change", () => {
+  const file = docxInput.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    mammoth.extractRawText({ arrayBuffer: e.target.result })
+      .then(result => {
+        parsedLines = result.value
+          .split(/\r?\n/)
+          .map(l => l.trim())
+          .filter(l => l.length > 0);
+
+        renderLines();
+      });
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+function renderLines() {
+  linesContainer.innerHTML = "";
+  nameContainer.innerHTML = "";
+  selectedWords = [];
+  selectedLineIndex = null;
+  selectedTitleSpan.textContent = "";
+  previewBody.textContent = "First line will appear here.";
+
+  parsedLines.slice(0, 60).forEach((line, index) => {
+    const div = document.createElement("div");
+    div.className = "line";
+    div.textContent = line;
+    div.onclick = () => selectLine(index);
+    linesContainer.appendChild(div);
+  });
+}
+
+function selectLine(index) {
+  selectedLineIndex = index;
+
+  document.querySelectorAll(".line").forEach(el => el.classList.remove("selected"));
+  linesContainer.children[index].classList.add("selected");
+
+  const raw = parsedLines[index];
+  const cleaned = cleanPreviewLine(raw);
+
+  previewBody.textContent = cleaned || "First line will appear here.";
+
+  renderWords(raw);
+}
+
+function renderWords(text) {
+  nameContainer.innerHTML = "";
+  selectedWords = [];
+
+  text.split(/\s+/).forEach((word, i) => {
+    const span = document.createElement("span");
+    span.className = "word";
+    span.textContent = word;
+    span.onclick = () => toggleWord(i, word);
+    nameContainer.appendChild(span);
+    nameContainer.append(" ");
+  });
+}
+
+function toggleWord(i, word) {
+  const cleanWord = word.replace(/,/g, "");
+
+  const existing = selectedWords.find(w => w.index === i);
+  if (existing) {
+    selectedWords = selectedWords.filter(w => w.index !== i);
+  } else {
+    selectedWords.push({ index: i, word: cleanWord });
+  }
+
+  selectedWords.sort((a, b) => a.index - b.index);
+
+  document.querySelectorAll(".word").forEach((el, idx) => {
+    el.classList.toggle("selected", selectedWords.some(w => w.index === idx));
+  });
+
+  const title = selectedWords.map(w => w.word).join(" ");
+  const titleUpper = title.toUpperCase();
+
+  currentTitleUpper = titleUpper;
+  selectedTitleSpan.textContent = titleUpper;
+  previewTitle.textContent = titleUpper || "TITLE WILL APPEAR HERE";
+
+  updatePermalink(titleUpper);
+}
+/* ============================================================
+   PERMALINK GENERATION
+   ============================================================ */
+const permalinkOutput = document.getElementById("permalink-output");
+
+function updatePermalink(titleText) {
+  if (!titleText || titleText.trim().length === 0) {
+    permalinkOutput.textContent = "https://coxfuneralhomeonline.com/";
+    currentSlug = "";
+    return;
+  }
+
+  let slug = titleText
+    .toLowerCase()
+    .replace(/[.,]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  currentSlug = slug;
+  permalinkOutput.textContent = "https://coxfuneralhomeonline.com/" + slug + "/";
+}
+
+/* ============================================================
+   CATEGORY HANDLING
+   ============================================================ */
+const catCheckboxes = document.querySelectorAll(".cat-checkbox");
+const selectedCategoriesSpan = document.getElementById("selected-categories");
+
+function updateSelectedCategories() {
+  const cats = Array.from(catCheckboxes)
+    .filter(cb => cb.checked)
+    .map(cb => cb.value);
+
+  selectedCategoriesSpan.textContent = cats.join(", ");
+}
+
+catCheckboxes.forEach(cb => cb.addEventListener("change", updateSelectedCategories));
+updateSelectedCategories();
+
 /* ============================================================
    IMAGE HANDLING
    ============================================================ */
@@ -355,154 +673,6 @@ skipPhoto.addEventListener("click", () => {
   previewImage.src = "";
 });
 
-////////////////////////////////////////////////////////////////////////////////
-/* ============================================================
-   DOCX HANDLING
-   ============================================================ */
-let parsedLines = [];
-let selectedWords = [];
-let currentTitleUpper = "";
-let currentSlug = "";
-let selectedLineIndex = null;
-
-const docxInput = document.getElementById("docx-input");
-const linesContainer = document.getElementById("lines-container");
-const nameContainer = document.getElementById("name-container");
-const selectedTitleSpan = document.getElementById("selected-title");
-const previewTitle = document.getElementById("preview-title");
-const previewBody = document.getElementById("preview-body");
-
-docxInput.addEventListener("change", () => {
-  const file = docxInput.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = e => {
-    mammoth.extractRawText({ arrayBuffer: e.target.result })
-      .then(result => {
-        parsedLines = result.value
-          .split(/\r?\n/)
-          .map(l => l.trim())
-          .filter(l => l.length > 0);
-
-        renderLines();
-      });
-  };
-  reader.readAsArrayBuffer(file);
-});
-
-function renderLines() {
-  linesContainer.innerHTML = "";
-  nameContainer.innerHTML = "";
-  selectedWords = [];
-  selectedLineIndex = null;
-  selectedTitleSpan.textContent = "";
-  previewBody.textContent = "First line will appear here.";
-
-  parsedLines.slice(0, 40).forEach((line, index) => {
-    const div = document.createElement("div");
-    div.className = "line";
-    div.textContent = line;
-    div.onclick = () => selectLine(index);
-    linesContainer.appendChild(div);
-  });
-}
-
-function selectLine(index) {
-  selectedLineIndex = index;
-
-  document.querySelectorAll(".line").forEach(el => el.classList.remove("selected"));
-  linesContainer.children[index].classList.add("selected");
-
-  const text = parsedLines[index];
-  previewBody.textContent = text;
-
-  renderWords(text);
-}
-
-function renderWords(text) {
-  nameContainer.innerHTML = "";
-  selectedWords = [];
-
-  text.split(/\s+/).forEach((word, i) => {
-    const span = document.createElement("span");
-    span.className = "word";
-    span.textContent = word;
-    span.onclick = () => toggleWord(i, word);
-    nameContainer.appendChild(span);
-    nameContainer.append(" ");
-  });
-}
-////////////////////////////////////////////////////////////////////////////////
-/* ============================================================
-   PERMALINK GENERATION
-   ============================================================ */
-const permalinkOutput = document.getElementById("permalink-output");
-
-function updatePermalink(titleText) {
-  if (!titleText || titleText.trim().length === 0) {
-    permalinkOutput.textContent = "https://coxfuneralhomeonline.com/";
-    currentSlug = "";
-    return;
-  }
-
-  let slug = titleText
-    .toLowerCase()
-    .replace(/[.,]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-
-  currentSlug = slug;
-  permalinkOutput.textContent = "https://coxfuneralhomeonline.com/" + slug + "/";
-}
-
-function toggleWord(i, word) {
-  const cleanWord = word.replace(/,/g, "");
-
-  const existing = selectedWords.find(w => w.index === i);
-  if (existing) {
-    selectedWords = selectedWords.filter(w => w.index !== i);
-  } else {
-    selectedWords.push({ index: i, word: cleanWord });
-  }
-
-  selectedWords.sort((a, b) => a.index - b.index);
-
-  document.querySelectorAll(".word").forEach((el, idx) => {
-    el.classList.toggle("selected", selectedWords.some(w => w.index === idx));
-  });
-
-  const title = selectedWords.map(w => w.word).join(" ");
-  const titleUpper = title.toUpperCase();
-
-  currentTitleUpper = titleUpper;
-  selectedTitleSpan.textContent = titleUpper;
-  previewTitle.textContent = titleUpper || "TITLE WILL APPEAR HERE";
-
-  updatePermalink(titleUpper);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/* ============================================================
-   CATEGORY HANDLING
-   ============================================================ */
-const catCheckboxes = document.querySelectorAll(".cat-checkbox");
-const selectedCategoriesSpan = document.getElementById("selected-categories");
-
-function updateSelectedCategories() {
-  const cats = Array.from(catCheckboxes)
-    .filter(cb => cb.checked)
-    .map(cb => cb.value);
-
-  selectedCategoriesSpan.textContent = cats.join(", ");
-}
-
-catCheckboxes.forEach(cb => cb.addEventListener("change", updateSelectedCategories));
-updateSelectedCategories();
-
-////////////////////////////////////////////////////////////////////////////////
 /* ============================================================
    WORDPRESS PUBLISHING
    ============================================================ */
@@ -568,7 +738,7 @@ async function publishToWordPress() {
 
   const title = currentTitleUpper.trim();
   if (!title) {
-    wpStatus.textContent = "Please select a name/title.";
+    wpStatus.textContent = "Please tap words to build the name/title.";
     btn.disabled = false;
     btn.style.background = "#4ea3ff";
     btn.textContent = "Publish to WordPress";
