@@ -114,11 +114,6 @@
       margin-bottom: 2px;
     }
 
-    .line.selected {
-      background: #2a3b4d;
-      border-left: 3px solid #4ea3ff;
-    }
-
     .word {
       display: inline-block;
       padding: 4px 6px;
@@ -131,7 +126,8 @@
     }
 
     .word.selected {
-      background: #664400;
+      background: #665200;
+      color: #fff;
     }
 
     img {
@@ -222,9 +218,23 @@
       margin-top: 8px;
       min-height: 1em;
     }
+
+    /* BIG GOLD PUBLISH BUTTON */
+    #publish-button {
+      display: block;
+      width: 100%;
+      text-align: center;
+      background: #665200;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.9rem;
+      padding: 1.2rem 1rem;
+      text-transform: uppercase;
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
   </style>
 </head>
-
 <body>
   <!-- LOGIN MODAL -->
   <div id="authOverlay">
@@ -269,8 +279,6 @@
             <h4 style="margin:0 0 .25rem 0;">Lines</h4>
             <div id="lines-container" class="preview-box"></div>
           </div>
-
-          
         </div>
 
         <div class="nav-buttons">
@@ -278,6 +286,7 @@
           <button type="button" onclick="goToCard(1)">Next</button>
         </div>
       </div>
+
       <!-- CARD 2: PHOTO -->
       <div class="card" data-card-index="1">
         <div class="card-header">
@@ -348,6 +357,7 @@
           <button type="button" onclick="goToCard(4)">Next</button>
         </div>
       </div>
+
       <!-- CARD 5: PREVIEW -->
       <div class="card" data-card-index="4">
         <div class="card-header">
@@ -376,7 +386,7 @@
         </div>
 
         <h3>Publish to WordPress</h3>
-        <button id="publish-button">Publish to WordPress</button>
+        <button id="publish-button">PUBLISH TO WORDPRESS</button>
 
         <div id="wp-status"></div>
 
@@ -388,7 +398,6 @@
 
     </div> <!-- end cards-wrapper -->
   </div> <!-- end app-shell -->
-
 <script>
 /* ============================================================
    WORDPRESS CONFIG
@@ -457,24 +466,29 @@ function goToCard(index) {
    DOCX HANDLING + NAME SELECTION
    ============================================================ */
 let parsedLines = [];
+let nonFooterIndices = [];
 let selectedWords = [];
-let selectedLineIndex = null;
+let selectedLineIndex = null;        // index in nonFooterIndices
+let selectedOriginalIndex = null;    // index in parsedLines
 let currentTitleUpper = "";
 let currentSlug = "";
 
 const docxInput = document.getElementById("docx-input");
 const linesContainer = document.getElementById("lines-container");
-const nameContainer = document.getElementById("name-container");
-const selectedTitleSpan = document.getElementById("selected-title");
 const previewTitle = document.getElementById("preview-title");
 const previewBody = document.getElementById("preview-body");
 
-/* Footer lines to filter from preview */
+/* Footer lines to filter from selection (but keep in final content) */
 const FILTER_LINES = [
   "COX FUNERAL HOME; PO BOX 118; 218 SOUTH MERIDIAN ST; JASONVILLE, IN 47438",
   "PHONE--812-665-9490",
   "PAID OBIT with photo"
 ];
+
+function isFooterLine(line) {
+  const trimmed = line.trim().toLowerCase();
+  return FILTER_LINES.some(f => trimmed === f.toLowerCase());
+}
 
 function cleanPreviewLine(line) {
   const trimmed = line.trim();
@@ -507,96 +521,76 @@ function renderLines() {
   linesContainer.innerHTML = "";
   selectedWords = [];
   selectedLineIndex = null;
-  selectedTitleSpan.textContent = "";
+  selectedOriginalIndex = null;
   previewBody.textContent = "First line will appear here.";
+  previewTitle.textContent = "TITLE WILL APPEAR HERE";
+  currentTitleUpper = "";
+  currentSlug = "";
+  nonFooterIndices = [];
 
-  const filtered = parsedLines
-    .slice(0, 60)
-    .filter(line => {
-      const trimmed = line.trim().toLowerCase();
-      return !FILTER_LINES.some(f => trimmed === f.toLowerCase());
-    });
+  let count = 0;
+  parsedLines.forEach((line, originalIndex) => {
+    if (count >= 60) return;
+    if (isFooterLine(line)) return;
 
-  filtered.forEach((line, index) => {
+    nonFooterIndices.push(originalIndex);
+    count++;
+
     const div = document.createElement("div");
     div.className = "line";
     div.textContent = line;
-    div.onclick = () => expandLineForWords(div, line, index);
+    div.dataset.originalText = line;
+    div.onclick = () => selectLineForWords(div, line, nonFooterIndices.length - 1);
     linesContainer.appendChild(div);
   });
 }
 
-function expandLineForWords(lineElement, rawLine, index) {
-  selectedLineIndex = index;
+/**
+ * When a line is clicked:
+ * - That line becomes the "first line" (by original index)
+ * - The line text stays visible
+ * - Tappable words appear directly underneath
+ * - Only selected words get highlighted
+ */
+function selectLineForWords(lineElement, rawLine, nonFooterIndex) {
+  selectedLineIndex = nonFooterIndex;
+  selectedOriginalIndex = nonFooterIndices[nonFooterIndex];
   selectedWords = [];
 
-  // Clear previous selections
+  // Reset all lines to original text (remove any word spans)
   document.querySelectorAll(".line").forEach(el => {
-    el.classList.remove("selected");
-    el.innerHTML = el.dataset.originalText || el.textContent;
+    const original = el.dataset.originalText;
+    if (original) {
+      el.innerHTML = original;
+    }
   });
 
-  // Mark this line as selected
-  lineElement.classList.add("selected");
-  lineElement.dataset.originalText = rawLine;
+  // Rebuild this line: original text + <br> + tappable words
+  lineElement.innerHTML = rawLine + "<br>";
 
-  // Build inline word buttons
   const words = rawLine.split(/\s+/);
-  lineElement.innerHTML = "";
-
   words.forEach((word, i) => {
     const span = document.createElement("span");
     span.className = "word";
     span.textContent = word;
     span.onclick = (e) => {
       e.stopPropagation();
-      toggleInlineWord(span, i, word, rawLine);
+      toggleInlineWord(span, i, word);
     };
     lineElement.appendChild(span);
     lineElement.append(" ");
   });
 
-  // Update preview body
+  // Update preview body with this line as the first line
   const cleaned = cleanPreviewLine(rawLine);
   previewBody.textContent = cleaned || "First line will appear here.";
 }
 
-
-
-
-function selectLine(index) {
-  selectedLineIndex = index;
-
-  document.querySelectorAll(".line").forEach(el => el.classList.remove("selected"));
-  linesContainer.children[index].classList.add("selected");
-
-  const raw = parsedLines.filter(line => {
-    const trimmed = line.trim().toLowerCase();
-    return !FILTER_LINES.some(f => trimmed === f.toLowerCase());
-  })[index];
-
-  const cleaned = cleanPreviewLine(raw);
-  previewBody.textContent = cleaned || "First line will appear here.";
-
-  renderWords(raw);
-}
-
-
-function renderWords(text) {
-  nameContainer.innerHTML = "";
-  selectedWords = [];
-
-  text.split(/\s+/).forEach((word, i) => {
-    const span = document.createElement("span");
-    span.className = "word";
-    span.textContent = word;
-    span.onclick = () => toggleWord(i, word);
-    nameContainer.appendChild(span);
-    nameContainer.append(" ");
-  });
-}
-
-function toggleInlineWord(span, index, word, rawLine) {
+/**
+ * Toggle a single word inside the selected line.
+ * Only the word gets highlighted (soft gold).
+ */
+function toggleInlineWord(span, index, word) {
   const cleanWord = word.replace(/,/g, "");
 
   const existing = selectedWords.find(w => w.index === index);
@@ -642,7 +636,6 @@ function updatePermalink(titleText) {
   currentSlug = slug;
   permalinkOutput.textContent = "https://coxfuneralhomeonline.com/" + slug + "/";
 }
-
 /* ============================================================
    CATEGORY HANDLING
    ============================================================ */
@@ -722,8 +715,8 @@ publishButton.addEventListener("click", () => {
   publishToWordPress().catch(err => {
     wpStatus.textContent = "Error: " + err.message;
     publishButton.disabled = false;
-    publishButton.style.background = "#4ea3ff";
-    publishButton.textContent = "Publish to WordPress";
+    publishButton.style.background = "#665200";
+    publishButton.textContent = "PUBLISH TO WORDPRESS";
   });
 });
 
@@ -762,16 +755,16 @@ async function publishToWordPress() {
   if (!window.wpAuth) {
     wpStatus.textContent = "You must log in first.";
     btn.disabled = false;
-    btn.style.background = "#4ea3ff";
-    btn.textContent = "Publish to WordPress";
+    btn.style.background = "#665200";
+    btn.textContent = "PUBLISH TO WORDPRESS";
     return;
   }
 
-  if (selectedLineIndex === null) {
+  if (selectedOriginalIndex === null) {
     wpStatus.textContent = "Please select a first line.";
     btn.disabled = false;
-    btn.style.background = "#4ea3ff";
-    btn.textContent = "Publish to WordPress";
+    btn.style.background = "#665200";
+    btn.textContent = "PUBLISH TO WORDPRESS";
     return;
   }
 
@@ -779,13 +772,13 @@ async function publishToWordPress() {
   if (!title) {
     wpStatus.textContent = "Please tap words to build the name/title.";
     btn.disabled = false;
-    btn.style.background = "#4ea3ff";
-    btn.textContent = "Publish to WordPress";
+    btn.style.background = "#665200";
+    btn.textContent = "PUBLISH TO WORDPRESS";
     return;
   }
 
   const fullContent = parsedLines
-    .slice(selectedLineIndex)
+    .slice(selectedOriginalIndex)
     .join("\n\n") + "\n<p>&nbsp;</p>";
 
   const auth = getAuthHeader();
@@ -819,8 +812,8 @@ async function publishToWordPress() {
     const text = await res.text();
     wpStatus.textContent = "Failed to create post:\n" + text;
     btn.disabled = false;
-    btn.style.background = "#4ea3ff";
-    btn.textContent = "Publish to WordPress";
+    btn.style.background = "#665200";
+    btn.textContent = "PUBLISH TO WORDPRESS";
     return;
   }
 
