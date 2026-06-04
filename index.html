@@ -518,14 +518,21 @@ function renderLines() {
   selectedTitleSpan.textContent = "";
   previewBody.textContent = "First line will appear here.";
 
-  parsedLines.slice(0, 60).forEach((line, index) => {
-    const div = document.createElement("div");
-    div.className = "line";
-    div.textContent = line;
-    div.onclick = () => selectLine(index);
-    linesContainer.appendChild(div);
-  });
+  parsedLines
+    .slice(0, 60)
+    .filter(line => {
+      const trimmed = line.trim().toLowerCase();
+      return !FILTER_LINES.some(f => trimmed === f.toLowerCase());
+    })
+    .forEach((line, index) => {
+      const div = document.createElement("div");
+      div.className = "line";
+      div.textContent = line;
+      div.onclick = () => selectLine(index);
+      linesContainer.appendChild(div);
+    });
 }
+
 
 function selectLine(index) {
   selectedLineIndex = index;
@@ -533,13 +540,17 @@ function selectLine(index) {
   document.querySelectorAll(".line").forEach(el => el.classList.remove("selected"));
   linesContainer.children[index].classList.add("selected");
 
-  const raw = parsedLines[index];
-  const cleaned = cleanPreviewLine(raw);
+  const raw = parsedLines.filter(line => {
+    const trimmed = line.trim().toLowerCase();
+    return !FILTER_LINES.some(f => trimmed === f.toLowerCase());
+  })[index];
 
+  const cleaned = cleanPreviewLine(raw);
   previewBody.textContent = cleaned || "First line will appear here.";
 
   renderWords(raw);
 }
+
 
 function renderWords(text) {
   nameContainer.innerHTML = "";
