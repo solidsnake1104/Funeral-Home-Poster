@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8" />
+  <title>Funeral Home Post Builder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- CropperJS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+
+  <!-- Mammoth.js -->
+  <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+
+  <style>
+    body { font-family: system-ui; margin: 0; padding: 1rem; background: #f5f5f5; }
+    .section { background: #fff; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; }
+    .preview-box { border: 1px solid #ddd; padding: .5rem; background: #fafafa; max-height: 250px; overflow-y: auto; }
+    .line { padding: .25rem; cursor: pointer; border-radius: 4px; }
+    .line.selected { background: #e0f2ff; border-left: 3px solid #1f6feb; }
+    .word { padding: 0 2px; cursor: pointer; border-radius: 3px; }
+    .word.selected { background: #ffe0b2; }
+    img { max-width: 100%; }
+    button { padding: .5rem 1rem; background: #1f6feb; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+    button:disabled { background: #888; }
+    #wp-status { font-size: .9rem; margin-top: .5rem; white-space: pre-line; }
+
+    /* LOGIN MODAL */
+    #authBackdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(4px);
+      z-index: 9998;
+    }
+
+    #authOverlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    #authBox {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 320px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      text-align: center;
+      position: relative;
+      z-index: 10000;
+    }
+
+    #authBox input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      font-size: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    #authBox button {
+      width: 100%;
+      padding: 11px;
+      font-size: 16px;
+      background: #007aff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+
+    #authHint {
+      font-size: 12px;
+      color: #666;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- LOGIN MODAL -->
+<div id="authOverlay">
+  <div id="authBackdrop"></div>
+
+  <div id="authBox">
+    <h2>Login</h2>
+
+    <!-- Autofill spoof for obitposter.com -->
+    <form id="authForm" action="https://obitposter.com/login" method="post">
+      <input 
+        type="text" 
+        id="authUser" 
+        name="username"
+        autocomplete="username"
+        placeholder="WordPress Username">
+
+      <input 
+        type="password" 
+        id="authPass" 
+        name="password"
+        autocomplete="current-password"
+        placeholder="Application Password">
+
+      <button type="submit" id="authSubmit">Unlock</button>
+    </form>
+
+    <button id="passcodeUnlock">Unlock with Passcode</button>
+
+    <div id="authHint">
+      Save your WordPress credentials under <strong>obitposter.com</strong>.<br>
+      “Unlock with Passcode” uses device authentication.
+    </div>
+  </div>
+</div>
+
+<h1>Funeral Home Post Builder</h1>
+
+<!-- PHOTO SECTION -->
+<div class="section">
+  <h2>1. Featured Photo (Optional)</h2>
+  <input type="file" id="photo-input" accept="image/*" />
+
+  <div style="margin-top:1rem;">
+    <h3>Crop (3:4 Portrait)</h3>
+    <div id="crop-container" style="max-height:300px; overflow:hidden;">
+      <img id="crop-image" />
+    </div>
+    <button id="crop-button" disabled>Crop & Resize to 200×267</button>
+    <button id="skip-photo">Skip Photo</button>
+  </div>
+
+  <h3 style="margin-top:1rem;">Featured Image Preview</h3>
+  <div class="preview-box" style="text-align:center;">
+    <img id="featured-preview" />
+  </div>
+</div>
+
+<!-- DOCX SECTION -->
+<div class="section">
+  <h2>2. Obituary DOCX</h2>
+  <input type="file" id="docx-input" accept=".docx" />
+
+  <div style="display:flex; gap:1rem; margin-top:1rem;">
+    <div style="flex:1;">
+      <h3>Select First Line</h3>
+      <div id="lines-container" class="preview-box"></div>
+    </div>
+
+    <div style="flex:1;">
+      <h3>Select Name (Tap Words)</h3>
+      <div id="name-container" class="preview-box"></div>
+      <p><strong>Selected Title:</strong> <span id="selected-title"></span></p>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORIES SECTION -->
+<div class="section">
+  <h2>3. Categories</h2>
+
+  <label><input type="checkbox" class="cat-checkbox" value="7" checked> Obituaries</label><br>
+  <label><input type="checkbox" class="cat-checkbox" value="55" checked> 2021</label><br>
+  <label><input type="checkbox" class="cat-checkbox" value="9" checked> Recent Passings</label>
+
+  <p style="margin-top:1rem;">
+    <strong>Selected Categories:</strong>
+    <span id="selected-categories">7, 55, 9</span>
+  </p>
+</div>
+
+<!-- PERMALINK SECTION -->
+<div class="section">
+  <h2>4. Permalink</h2>
+  <p><strong>Generated URL:</strong></p>
+  <p id="permalink-output" style="font-weight:600; word-break:break-all;">
+    https://coxfuneralhomeonline.com/
+  </p>
+</div>
+
+<!-- PREVIEW SECTION -->
+<div class="section">
+  <h2>5. Post Preview</h2>
+  <h3 id="preview-title">TITLE WILL APPEAR HERE</h3>
+  <p id="preview-body">First line will appear here.</p>
+  <img id="preview-image" />
+</div>
+
+<!-- WORDPRESS PUBLISH SECTION -->
+<div class="section">
+  <h2>6. Publish to WordPress</h2>
+  <button id="publish-button">Publish to WordPress</button>
+  <div id="wp-status"></div>
+</div>
+
+<script>
+/* ---------------- CONFIG: WORDPRESS ---------------- */
+const WP_API_BASE = "https://coxfuneralhomeonline.com/wp-json/wp/v2";
+
+/* ---------------- LOGIN MODAL ---------------- */
+document.getElementById("authForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const user = document.getElementById("authUser").value.trim();
+  const pass = document.getElementById("authPass").value.trim();
+
+  if (!user || !pass) {
+    alert("Enter both username and password");
+    return;
+  }
+
+  window.wpAuth = { username: user, password: pass };
+  document.getElementById("authOverlay").style.display = "none";
+});
+
+document.getElementById("passcodeUnlock").addEventListener("click", async () => {
+  if (!navigator.credentials || !navigator.credentials.get) {
+    alert("Passcode unlock is not supported in this browser.");
+    return;
+  }
+
+  try {
+    const cred = await navigator.credentials.get({
+      password: true,
+      mediation: "required"
+    });
+
+    if (!cred || !cred.id || !cred.password) {
+      alert("No saved credentials found for obitposter.com.");
+      return;
+    }
+
+    window.wpAuth = {
+      username: cred.id,
+      password: cred.password
+    };
+
+    document.getElementById("authUser").value = cred.id;
+    document.getElementById("authPass").value = cred.password;
+    document.getElementById("authOverlay").style.display = "none";
+  } catch (err) {
+    console.error(err);
+    alert("Passcode unlock was cancelled or failed.");
+  }
+});
+
+/* ---------------- WORDPRESS AUTH ---------------- */
+function getAuthHeader() {
+  if (!window.wpAuth || !window.wpAuth.username || !window.wpAuth.password) return "";
+  return "Basic " + btoa(window.wpAuth.username + ":" + window.wpAuth.password);
+}
+
+/* ---------------- IMAGE HANDLING ---------------- */
+let cropper = null;
+const photoInput = document.getElementById("photo-input");
+const cropImage = document.getElementById("crop-image");
+const cropButton = document.getElementById("crop-button");
+const skipPhoto = document.getElementById("skip-photo");
+const featuredPreview = document.getElementById("featured-preview");
+const previewImage = document.getElementById("preview-image");
+
+photoInput.addEventListener("change", () => {
+  const file = photoInput.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    cropImage.src = e.target.result;
+
+    if (cropper) cropper.destroy();
+    cropper = new Cropper(cropImage, {
+      aspectRatio: 3 / 4,
+      viewMode: 1,
+      autoCropArea: 1
+    });
+
+    cropButton.disabled = false;
+  };
+  reader.readAsDataURL(file);
+});
+
+cropButton.addEventListener("click", () => {
+  if (!cropper) return;
+
+  const cropped = cropper.getCroppedCanvas();
+  const canvas = document.createElement("canvas");
+  canvas.width = 200;
+  canvas.height = 267;
+
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(cropped, 0, 0, 200, 267);
+
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+  featuredPreview.src = dataUrl;
+  previewImage.src = dataUrl;
+});
+
+skipPhoto.addEventListener("click", () => {
+  featuredPreview.src = "";
+  previewImage.src = "";
+});
+
+/* ---------------- DOCX HANDLING ---------------- */
+let parsedLines = [];
+let selectedWords = [];
+let currentTitleUpper = "";
+let currentSlug = "";
+let selectedLineIndex = null;
+
+const docxInput = document.getElementById("docx-input");
+const linesContainer = document.getElementById("lines-container");
+const nameContainer = document.getElementById("name-container");
+const selectedTitleSpan = document.getElementById("selected-title");
+const previewTitle = document.getElementById("preview-title");
+const previewBody = document.getElementById("preview-body");
+
+docxInput.addEventListener("change", () => {
+  const file = docxInput.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    mammoth.extractRawText({ arrayBuffer: e.target.result })
+      .then(result => {
+        parsedLines = result.value
+          .split(/\r?\n/)
+          .map(l => l.trim())
+          .filter(l => l.length > 0);
+
+        renderLines();
+      });
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+function renderLines() {
+  linesContainer.innerHTML = "";
+  nameContainer.innerHTML = "";
+  selectedWords = [];
+  selectedLineIndex = null;
+  selectedTitleSpan.textContent = "";
+  previewBody.textContent = "First line will appear here.";
+
+  parsedLines.slice(0, 40).forEach((line, index) => {
+    const div = document.createElement("div");
+    div.className = "line";
+    div.textContent = line;
+    div.onclick = () => selectLine(index);
+    linesContainer.appendChild(div);
+  });
+}
+
+function selectLine(index) {
+  selectedLineIndex = index;
+
+  document.querySelectorAll(".line").forEach(el => el.classList.remove("selected"));
+  const selected = linesContainer.children[index];
+  selected.classList.add("selected");
+
+  const text = parsedLines[index];
+  previewBody.textContent = text;
+
+  renderWords(text);
+}
+
+function renderWords(text) {
+  nameContainer.innerHTML = "";
+  selectedWords = [];
+
+  text.split(/\s+/).forEach((word, i) => {
+    const span = document.createElement("span");
+    span.className = "word";
+    span.textContent = word;
+    span.onclick = () => toggleWord(i, word);
+    nameContainer.appendChild(span);
+    nameContainer.append(" ");
+  });
+}
+
+/* ---------------- PERMALINK GENERATION ---------------- */
+const permalinkOutput = document.getElementById("permalink-output");
+
+function updatePermalink(titleText) {
+  if (!titleText || titleText.trim().length === 0) {
+    permalinkOutput.textContent = "https://coxfuneralhomeonline.com/";
+    currentSlug = "";
+    return;
+  }
+
+  let slug = titleText
+    .toLowerCase()
+    .replace(/[.,]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  currentSlug = slug;
+  permalinkOutput.textContent =
+    "https://coxfuneralhomeonline.com/" + slug + "/";
+}
+
+function toggleWord(i, word) {
+  const cleanWord = word.replace(/,/g, "");
+
+  const existing = selectedWords.find(w => w.index === i);
+  if (existing) {
+    selectedWords = selectedWords.filter(w => w.index !== i);
+  } else {
+    selectedWords.push({ index: i, word: cleanWord });
+  }
+
+  selectedWords.sort((a, b) => a.index - b.index);
+
+  document.querySelectorAll(".word").forEach((el, idx) => {
+    el.classList.toggle("selected", selectedWords.some(w => w.index === idx));
+  });
+
+  const title = selectedWords.map(w => w.word).join(" ");
+  const titleUpper = title.toUpperCase();
+
+  currentTitleUpper = titleUpper;
+  selectedTitleSpan.textContent = titleUpper;
+  previewTitle.textContent = titleUpper || "TITLE WILL APPEAR HERE";
+
+  updatePermalink(titleUpper);
+}
+
+/* ---------------- CATEGORY HANDLING ---------------- */
+const catCheckboxes = document.querySelectorAll(".cat-checkbox");
+const selectedCategoriesSpan = document.getElementById("selected-categories");
+
+function updateSelectedCategories() {
+  const cats = Array.from(catCheckboxes)
+    .filter(cb => cb.checked)
+    .map(cb => cb.value);
+
+  selectedCategoriesSpan.textContent = cats.join(", ");
+}
+
+catCheckboxes.forEach(cb => cb.addEventListener("change", updateSelectedCategories));
+updateSelectedCategories();
+
+/* ---------------- WORDPRESS PUBLISH ---------------- */
+const publishButton = document.getElementById("publish-button");
+const wpStatus = document.getElementById("wp-status");
+
+publishButton.addEventListener("click", () => {
+  publishToWordPress().catch(err => {
+    console.error(err);
+    wpStatus.textContent = "Error: " + err.message;
+    publishButton.disabled = false;
+    publishButton.style.background = "#1f6feb";
+    publishButton.textContent = "Publish to WordPress";
+  });
+});
+
+async function uploadFeaturedImageIfAny() {
+  const dataUrl = featuredPreview.src;
+  if (!dataUrl || !dataUrl.startsWith("data:image")) {
+    return null;
+  }
+
+  const auth = getAuthHeader();
+  const res = await fetch(dataUrl);
+  const blob = await res.blob();
+
+  const uploadRes = await fetch(`${WP_API_BASE}/media`, {
+    method: "POST",
+    headers: {
+      "Authorization": auth,
+      "Content-Disposition": 'attachment; filename="featured.jpg"',
+      "Content-Type": "image/jpeg"
+    },
+    body: blob
+  });
+
+  if (!uploadRes.ok) {
+    throw new Error("Failed to upload featured image");
+  }
+
+  const media = await uploadRes.json();
+  return media.id;
+}
+
+async function publishToWordPress() {
+  const btn = publishButton;
+  btn.disabled = true;
+  btn.style.background = "#888";
+  btn.textContent = "Publishing...";
+
+  wpStatus.textContent = "Publishing...";
+
+  if (!window.wpAuth || !window.wpAuth.username || !window.wpAuth.password) {
+    wpStatus.textContent = "You must log in first.";
+    btn.disabled = false;
+    btn.style.background = "#1f6feb";
+    btn.textContent = "Publish to WordPress";
+    return;
+  }
+
+  if (selectedLineIndex === null) {
+    wpStatus.textContent = "Please select a first line from the obituary.";
+    btn.disabled = false;
+    btn.style.background = "#1f6feb";
+    btn.textContent = "Publish to WordPress";
+    return;
+  }
+
+  const title = currentTitleUpper && currentTitleUpper.trim().length > 0
+    ? currentTitleUpper
+    : null;
+
+  if (!title) {
+    wpStatus.textContent = "Please select a name/title before publishing.";
+    btn.disabled = false;
+    btn.style.background = "#1f6feb";
+    btn.textContent = "Publish to WordPress";
+    return;
+  }
+
+  const fullContent = parsedLines
+    .slice(selectedLineIndex)
+    .join("\n\n") + "\n<p>&nbsp;</p>";
+
+  const auth = getAuthHeader();
+
+  const categoryIds = Array.from(catCheckboxes)
+    .filter(cb => cb.checked)
+    .map(cb => Number(cb.value));
+
+  const featuredMediaId = await uploadFeaturedImageIfAny();
+
+  const payload = {
+    title: title,
+    content: fullContent,
+    status: "publish",
+    categories: categoryIds
+  };
+
+  if (currentSlug) payload.slug = currentSlug;
+  if (featuredMediaId) payload.featured_media = featuredMediaId;
+
+  const res = await fetch(`${WP_API_BASE}/posts`, {
+    method: "POST",
+    headers: {
+      "Authorization": auth,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    wpStatus.textContent = "Failed to create post:\n" + text;
+    btn.disabled = false;
+    btn.style.background = "#1f6feb";
+    btn.textContent = "Publish to WordPress";
+    return;
+  }
+
+  const post = await res.json();
+
+  wpStatus.innerHTML =
+    `Published!<br>Post ID: ${post.id}<br>` +
+    `<a href="${post.link}" target="_blank" style="color:#1f6feb;">View Live Post</a>`;
+
+  btn.textContent = "Published";
+  btn.style.background = "#4caf50";
+}
+</script>
+
+</body>
+</html>
