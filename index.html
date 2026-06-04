@@ -11,7 +11,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 
   <!-- Mammoth.js -->
-  <script src="https://ununpkg.com/mammoth/mammoth.browser.min.js"></script>
+  <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
 
   <style>
     body {
@@ -23,6 +23,24 @@
       overflow-x: hidden;
     }
 
+    h1,
+    h2,
+    h3 {
+      margin-top: 0;
+    }
+
+    a.title-link {
+      color: #4ea3ff;
+      text-decoration: none;
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .app-shell {
+      padding: 1rem;
+    }
+
+    /* CARD LAYOUT (HORIZONTAL SWIPE) */
     .cards-wrapper {
       overflow-x: auto;
       scroll-snap-type: x mandatory;
@@ -42,34 +60,108 @@
     }
 
     @media (min-width: 900px) {
+      .cards-wrapper {
+        justify-content: center;
+      }
+
       .card {
         min-width: 800px;
         max-width: 800px;
       }
     }
 
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: .5rem;
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .card-step {
+      font-size: .85rem;
+      color: #aaa;
+    }
+
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1rem;
+      gap: .5rem;
+    }
+
+    .nav-buttons button {
+      flex: 1;
+    }
+
+    .preview-box {
+      border: 1px solid #444;
+      padding: .5rem;
+      background: #181818;
+      max-height: 250px;
+      overflow-y: auto;
+      border-radius: 6px;
+    }
+
     .line {
       padding: .35rem .4rem;
-      border-radius: 4px;
-      margin-bottom: 4px;
       cursor: pointer;
-      background: #181818;
-      border: 1px solid #333;
+      border-radius: 4px;
+      margin-bottom: 2px;
+    }
+
+    .line.selected {
+      background: #2a3b4d;
+      border-left: 3px solid #4ea3ff;
     }
 
     .word {
       display: inline-block;
-      padding: 3px 5px;
+      padding: 4px 6px;
       margin: 2px 2px;
-      border-radius: 4px;
       cursor: pointer;
+      border-radius: 4px;
+      font-size: 1.05rem;
+      line-height: 1.4;
+      background: #222;
     }
 
     .word.selected {
-      background: #665200;
-      color: white;
+      background: #664400;
     }
 
+    img {
+      max-width: 100%;
+    }
+
+    button {
+      padding: .6rem 1rem;
+      background: #4ea3ff;
+      color: #000;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: .95rem;
+    }
+
+    button:disabled {
+      background: #555;
+      color: #999;
+      cursor: default;
+    }
+
+    #wp-status {
+      font-size: .9rem;
+      margin-top: .5rem;
+      white-space: pre-line;
+    }
+
+    /* LOGIN MODAL */
     #authOverlay {
       position: fixed;
       inset: 0;
@@ -95,56 +187,103 @@
       border-radius: 12px;
       width: 90%;
       max-width: 320px;
-      border: 1px solid #333;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
       text-align: center;
+      border: 1px solid #333;
+    }
+
+    #authBox input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      font-size: 15px;
+      border-radius: 8px;
+      border: 1px solid #444;
+      background: #111;
+      color: #eee;
+      box-sizing: border-box;
+    }
+
+    #authBox button {
+      width: 100%;
+      padding: 11px;
+      font-size: 16px;
+      background: #4ea3ff;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      margin-top: 8px;
+      font-weight: 600;
+    }
+
+    #authError {
+      font-size: 13px;
+      color: #ff6b6b;
+      margin-top: 8px;
+      min-height: 1em;
     }
   </style>
 </head>
 
 <body>
-
   <!-- LOGIN MODAL -->
   <div id="authOverlay">
     <div id="authBackdrop"></div>
+
     <div id="authBox">
       <h2>Cox Funeral Home WordPress Login</h2>
+
       <form id="authForm">
-        <input type="text" id="authUser" placeholder="WordPress Username">
-        <input type="password" id="authPass" placeholder="Application Password">
-        <button type="submit">Login</button>
+        <input type="text" id="authUser" autocomplete="username" placeholder="WordPress Username">
+        <input type="password" id="authPass" autocomplete="current-password" placeholder="Application Password">
+        <button type="submit" id="authSubmit">Login</button>
       </form>
+
       <div id="authError"></div>
     </div>
   </div>
 
   <div class="app-shell">
-    <h1><a class="title-link" href="">CFH Obit Poster</a></h1>
+    <h1>
+      <a class="title-link" href="">CFH Obit Poster</a>
+    </h1>
 
     <div class="cards-wrapper" id="cardsWrapper">
-
       <!-- CARD 1: OBITUARY + NAME -->
       <div class="card" data-card-index="0">
-        <h2>Upload Obituary & Select Name</h2>
+        <div class="card-header">
+          <div class="card-title">Obituary & Name</div>
+          <div class="card-step">Step 1 of 5</div>
+        </div>
 
+        <h3>Upload Obituary DOCX</h3>
         <input type="file" id="docx-input" accept=".docx" />
 
-        <h3 style="margin-top:1rem;">Tap a line, then tap words to build the name</h3>
-
-        <div id="lines-container" class="preview-box" style="max-height:260px; overflow-y:auto;"></div>
-
-        <p style="margin-top:1rem;">
-          <strong>Selected Title:</strong>
-          <span id="selected-title"></span>
+        <h3 style="margin-top:1rem;">Select Name & First Line</h3>
+        <p style="font-size:.9rem; color:#bbb;">
+          Tap a line below to choose where the obituary starts, then tap words from that line to build the name.
         </p>
 
+        <div style="display:flex; flex-direction:column; gap:1rem; margin-top:.5rem;">
+          <div>
+            <h4 style="margin:0 0 .25rem 0;">Lines</h4>
+            <div id="lines-container" class="preview-box"></div>
+          </div>
+
+          
+        </div>
+
         <div class="nav-buttons">
-          <button disabled>Previous</button>
-          <button onclick="goToCard(1)">Next</button>
+          <button type="button" disabled>Previous</button>
+          <button type="button" onclick="goToCard(1)">Next</button>
         </div>
       </div>
       <!-- CARD 2: PHOTO -->
       <div class="card" data-card-index="1">
-        <h2>Featured Photo</h2>
+        <div class="card-header">
+          <div class="card-title">Featured Photo</div>
+          <div class="card-step">Step 2 of 5</div>
+        </div>
 
         <h3>Upload Photo (Optional)</h3>
         <input type="file" id="photo-input" accept="image/*" />
@@ -163,14 +302,17 @@
         </div>
 
         <div class="nav-buttons">
-          <button onclick="goToCard(0)">Previous</button>
-          <button onclick="goToCard(2)">Next</button>
+          <button type="button" onclick="goToCard(0)">Previous</button>
+          <button type="button" onclick="goToCard(2)">Next</button>
         </div>
       </div>
 
       <!-- CARD 3: CATEGORIES -->
       <div class="card" data-card-index="2">
-        <h2>Categories</h2>
+        <div class="card-header">
+          <div class="card-title">Categories</div>
+          <div class="card-step">Step 3 of 5</div>
+        </div>
 
         <h3>Select Categories</h3>
 
@@ -184,14 +326,17 @@
         </p>
 
         <div class="nav-buttons">
-          <button onclick="goToCard(1)">Previous</button>
-          <button onclick="goToCard(3)">Next</button>
+          <button type="button" onclick="goToCard(1)">Previous</button>
+          <button type="button" onclick="goToCard(3)">Next</button>
         </div>
       </div>
 
       <!-- CARD 4: PERMALINK -->
       <div class="card" data-card-index="3">
-        <h2>Permalink</h2>
+        <div class="card-header">
+          <div class="card-title">Permalink</div>
+          <div class="card-step">Step 4 of 5</div>
+        </div>
 
         <h3>Generated URL</h3>
         <p id="permalink-output" style="font-weight:600; word-break:break-all;">
@@ -199,13 +344,16 @@
         </p>
 
         <div class="nav-buttons">
-          <button onclick="goToCard(2)">Previous</button>
-          <button onclick="goToCard(4)">Next</button>
+          <button type="button" onclick="goToCard(2)">Previous</button>
+          <button type="button" onclick="goToCard(4)">Next</button>
         </div>
       </div>
       <!-- CARD 5: PREVIEW -->
       <div class="card" data-card-index="4">
-        <h2>Preview</h2>
+        <div class="card-header">
+          <div class="card-title">Preview</div>
+          <div class="card-step">Step 5 of 5</div>
+        </div>
 
         <h3>Post Preview</h3>
 
@@ -215,14 +363,17 @@
         <img id="preview-image" style="margin-top:1rem;" />
 
         <div class="nav-buttons">
-          <button onclick="goToCard(3)">Previous</button>
-          <button onclick="goToCard(5)">Next</button>
+          <button type="button" onclick="goToCard(3)">Previous</button>
+          <button type="button" onclick="goToCard(5)">Next</button>
         </div>
       </div>
 
       <!-- CARD 6: PUBLISH -->
       <div class="card" data-card-index="5">
-        <h2>Publish</h2>
+        <div class="card-header">
+          <div class="card-title">Publish</div>
+          <div class="card-step">Final Step</div>
+        </div>
 
         <h3>Publish to WordPress</h3>
         <button id="publish-button">Publish to WordPress</button>
@@ -230,8 +381,8 @@
         <div id="wp-status"></div>
 
         <div class="nav-buttons">
-          <button onclick="goToCard(4)">Previous</button>
-          <button disabled>Next</button>
+          <button type="button" onclick="goToCard(4)">Previous</button>
+          <button type="button" disabled>Next</button>
         </div>
       </div>
 
@@ -303,7 +454,7 @@ function goToCard(index) {
 }
 
 /* ============================================================
-   DOCX HANDLING + LINE + WORD SELECTION
+   DOCX HANDLING + NAME SELECTION
    ============================================================ */
 let parsedLines = [];
 let selectedWords = [];
@@ -313,20 +464,21 @@ let currentSlug = "";
 
 const docxInput = document.getElementById("docx-input");
 const linesContainer = document.getElementById("lines-container");
+const nameContainer = document.getElementById("name-container");
 const selectedTitleSpan = document.getElementById("selected-title");
 const previewTitle = document.getElementById("preview-title");
 const previewBody = document.getElementById("preview-body");
 
-/* Footer lines to hide from selection (but keep in final obituary) */
+/* Footer lines to filter from preview */
 const FILTER_LINES = [
   "COX FUNERAL HOME; PO BOX 118; 218 SOUTH MERIDIAN ST; JASONVILLE, IN 47438",
   "PHONE--812-665-9490",
-  "PAID OBIT WITH PHOTO"
+  "PAID OBIT with photo"
 ];
 
 function cleanPreviewLine(line) {
   const trimmed = line.trim();
-  if (FILTER_LINES.some(f => trimmed.toLowerCase() === f.toLowerCase())) {
+  if (FILTER_LINES.some(f => trimmed.toLowerCase().includes(f.toLowerCase()))) {
     return "";
   }
   return trimmed;
@@ -369,46 +521,82 @@ function renderLines() {
     const div = document.createElement("div");
     div.className = "line";
     div.textContent = line;
-    div.onclick = () => selectLine(div, line, index);
+    div.onclick = () => expandLineForWords(div, line, index);
     linesContainer.appendChild(div);
   });
 }
 
-function selectLine(lineElement, rawLine, index) {
+function expandLineForWords(lineElement, rawLine, index) {
   selectedLineIndex = index;
   selectedWords = [];
 
-  /* Clear previous word highlights */
-  document.querySelectorAll(".word").forEach(w => w.remove());
-  document.querySelectorAll(".line").forEach(l => {
-    l.innerHTML = l.dataset.originalText || l.textContent;
+  // Clear previous selections
+  document.querySelectorAll(".line").forEach(el => {
+    el.classList.remove("selected");
+    el.innerHTML = el.dataset.originalText || el.textContent;
   });
 
-  /* Store original text */
+  // Mark this line as selected
+  lineElement.classList.add("selected");
   lineElement.dataset.originalText = rawLine;
 
-  /* Rebuild line with tappable words underneath */
-  lineElement.innerHTML = rawLine + "<br>";
-
+  // Build inline word buttons
   const words = rawLine.split(/\s+/);
+  lineElement.innerHTML = "";
+
   words.forEach((word, i) => {
     const span = document.createElement("span");
     span.className = "word";
     span.textContent = word;
     span.onclick = (e) => {
       e.stopPropagation();
-      toggleWord(span, i, word);
+      toggleInlineWord(span, i, word, rawLine);
     };
     lineElement.appendChild(span);
     lineElement.append(" ");
   });
 
-  /* Update preview body */
+  // Update preview body
   const cleaned = cleanPreviewLine(rawLine);
   previewBody.textContent = cleaned || "First line will appear here.";
 }
 
-function toggleWord(span, index, word) {
+
+
+
+function selectLine(index) {
+  selectedLineIndex = index;
+
+  document.querySelectorAll(".line").forEach(el => el.classList.remove("selected"));
+  linesContainer.children[index].classList.add("selected");
+
+  const raw = parsedLines.filter(line => {
+    const trimmed = line.trim().toLowerCase();
+    return !FILTER_LINES.some(f => trimmed === f.toLowerCase());
+  })[index];
+
+  const cleaned = cleanPreviewLine(raw);
+  previewBody.textContent = cleaned || "First line will appear here.";
+
+  renderWords(raw);
+}
+
+
+function renderWords(text) {
+  nameContainer.innerHTML = "";
+  selectedWords = [];
+
+  text.split(/\s+/).forEach((word, i) => {
+    const span = document.createElement("span");
+    span.className = "word";
+    span.textContent = word;
+    span.onclick = () => toggleWord(i, word);
+    nameContainer.appendChild(span);
+    nameContainer.append(" ");
+  });
+}
+
+function toggleInlineWord(span, index, word, rawLine) {
   const cleanWord = word.replace(/,/g, "");
 
   const existing = selectedWords.find(w => w.index === index);
@@ -426,11 +614,11 @@ function toggleWord(span, index, word) {
   const titleUpper = title.toUpperCase();
 
   currentTitleUpper = titleUpper;
-  selectedTitleSpan.textContent = titleUpper;
   previewTitle.textContent = titleUpper || "TITLE WILL APPEAR HERE";
 
   updatePermalink(titleUpper);
 }
+
 /* ============================================================
    PERMALINK GENERATION
    ============================================================ */
